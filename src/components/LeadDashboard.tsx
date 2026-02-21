@@ -11,6 +11,9 @@ interface Post {
     id: string;
     text: string;
     authorName?: string;
+    authorUsername?: string;
+    url?: string;
+    createdAt?: string;
     evaluation?: {
         isLead: boolean;
         score: number;
@@ -84,6 +87,9 @@ export default function LeadDashboard({ initialPosts }: { initialPosts: Post[] }
                         id: l.tweetId,
                         text: l.content,
                         authorName: l.authorName,
+                        authorUsername: l.authorUsername,
+                        url: l.url,
+                        createdAt: l.createdAt,
                         evaluation: {
                             isLead: true,
                             score: l.score,
@@ -186,6 +192,9 @@ export default function LeadDashboard({ initialPosts }: { initialPosts: Post[] }
                                 body: JSON.stringify({
                                     tweetId: post.id,
                                     authorName: post.authorName,
+                                    authorUsername: post.authorUsername,
+                                    url: post.url,
+                                    createdAt: post.createdAt,
                                     content: post.text,
                                     score: post.evaluation.score,
                                     suggestedReply: post.evaluation.suggestedReply,
@@ -367,8 +376,25 @@ export default function LeadDashboard({ initialPosts }: { initialPosts: Post[] }
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100"><User className="w-5 h-5 text-slate-400" /></div>
                                             <div>
-                                                <div className="font-bold text-slate-900">@{post.authorName || "User"}</div>
-                                                <div className="text-xs text-slate-400">X (Twitter) • {new Date().toLocaleDateString('ja-JP')}</div>
+                                                <div className="font-bold text-slate-900">
+                                                    {post.authorUsername ? (
+                                                        <a href={`https://x.com/${post.authorUsername}`} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1 transition-colors">
+                                                            <span>{post.authorName || "User"}</span>
+                                                            <span className="text-slate-500 font-normal text-sm">@{post.authorUsername}</span>
+                                                        </a>
+                                                    ) : (
+                                                        <span>@{post.authorName || "User"}</span>
+                                                    )}
+                                                </div>
+                                                <div className="text-xs text-slate-400 mt-0.5">
+                                                    {post.url ? (
+                                                        <a href={post.url} target="_blank" rel="noopener noreferrer" className="hover:underline transition-colors">
+                                                            X (Twitter) • {post.createdAt ? new Date(post.createdAt).toLocaleDateString('ja-JP') : new Date().toLocaleDateString('ja-JP')}
+                                                        </a>
+                                                    ) : (
+                                                        <span>X (Twitter) • {post.createdAt ? new Date(post.createdAt).toLocaleDateString('ja-JP') : new Date().toLocaleDateString('ja-JP')}</span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                         {post.evaluation && (
