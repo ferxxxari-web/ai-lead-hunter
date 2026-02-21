@@ -54,15 +54,15 @@ export async function fetchRecentPosts(query: string, excludeKeywords: string[] 
 
         return items
             .filter((tweet: any) => {
-                const text = tweet.full_text || tweet.text || '';
+                const text = tweet.fullText || tweet.full_text || tweet.text || '';
                 return text && !excludeKeywords.some(kw => text.includes(kw));
             })
             .map((tweet: any) => ({
                 id: tweet.id_str || tweet.id || '',
-                text: tweet.full_text || tweet.text || '',
-                authorId: tweet.user?.id_str || '',
-                createdAt: tweet.created_at || new Date().toISOString(),
-                authorName: tweet.user?.name || tweet.user?.screen_name || 'X User'
+                text: tweet.fullText || tweet.full_text || tweet.text || '',
+                authorId: tweet.author?.id || tweet.user?.id_str || '',
+                createdAt: tweet.createdAt || tweet.created_at || new Date().toISOString(),
+                authorName: tweet.author?.name || tweet.author?.userName || tweet.user?.name || tweet.user?.screen_name || 'X User'
             })).slice(0, 10);
     } catch (error: any) {
         console.error("Apify Search Error details:", error);
