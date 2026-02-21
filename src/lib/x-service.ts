@@ -6,6 +6,8 @@ export interface XPost {
     authorId: string;
     createdAt: string;
     authorName?: string;
+    authorUsername?: string;
+    url?: string;
 }
 
 const getApifyToken = () => process.env.APIFY_API_TOKEN;
@@ -57,13 +59,18 @@ export async function fetchRecentPosts(query: string, excludeKeywords: string[] 
                 const text = tweet.fullText || tweet.full_text || tweet.text || '';
                 return text && !excludeKeywords.some(kw => text.includes(kw));
             })
-            .map((tweet: any) => ({
-                id: tweet.id_str || tweet.id || '',
-                text: tweet.fullText || tweet.full_text || tweet.text || '',
-                authorId: tweet.author?.id || tweet.user?.id_str || '',
-                createdAt: tweet.createdAt || tweet.created_at || new Date().toISOString(),
-                authorName: tweet.author?.name || tweet.author?.userName || tweet.user?.name || tweet.user?.screen_name || 'X User'
-            })).slice(0, 10);
+            .map((tweet: any) => {
+                const authorUsername = tweet.author?.userName || tweet.user?.screen_name || '';
+                return {
+                    id: tweet.id_str || tweet.id || '',
+                    text: tweet.fullText || tweet.full_text || tweet.text || '',
+                    authorId: tweet.author?.id || tweet.user?.id_str || '',
+                    createdAt: tweet.createdAt || tweet.created_at || new Date().toISOString(),
+                    authorName: tweet.author?.name || tweet.author?.userName || tweet.user?.name || tweet.user?.screen_name || 'X User',
+                    authorUsername: authorUsername,
+                    url: tweet.url || (authorUsername && (tweet.id_str || tweet.id) ? `https://x.com/${authorUsername}/status/${tweet.id_str || tweet.id}` : undefined)
+                };
+            }).slice(0, 10);
     } catch (error: any) {
         console.error("Apify Search Error details:", error);
         // デバッグ用: ダミーではなくエラーを含んだ要素を1つ返す
