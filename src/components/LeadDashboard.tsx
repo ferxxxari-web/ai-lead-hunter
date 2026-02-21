@@ -359,15 +359,39 @@ export default function LeadDashboard({ initialPosts }: { initialPosts: Post[] }
             <main className="flex-1 overflow-y-auto p-12">
                 {activeTab === 'leads' && (
                     <>
-                        <header className="flex items-end justify-between mb-12">
-                            <div>
-                                <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-3 ml-[-2px]">見込み客フィード</h1>
-                                <p className="text-slate-500 font-medium">AIが探知した最新的確なリードです。</p>
+                        <header className="mb-10">
+                            <div className="flex items-end justify-between mb-8">
+                                <div>
+                                    <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-2 ml-[-2px]">見込み客フィード</h1>
+                                    <p className="text-slate-500 font-medium">AIが探知した最新的確なリードです。</p>
+                                </div>
+                                <button onClick={handleScan} disabled={isScanning} className="px-8 py-3.5 bg-teal-600 text-white rounded-xl font-bold text-sm hover:bg-teal-700 transition-all shadow-lg shadow-teal-600/20 active:scale-95 flex items-center gap-2">
+                                    {isScanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 fill-current" />}
+                                    スキャンを開始
+                                </button>
                             </div>
-                            <button onClick={handleScan} disabled={isScanning} className="px-8 py-3.5 bg-teal-600 text-white rounded-xl font-bold text-sm hover:bg-teal-700 transition-all shadow-lg shadow-teal-600/20 active:scale-95 flex items-center gap-2">
-                                {isScanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 fill-current" />}
-                                スキャンを開始
-                            </button>
+
+                            {/* ROI Dashboard Panel */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">今月のAI抽出リード</div>
+                                    <div className="text-3xl font-black text-slate-800">{posts.length}<span className="text-base font-bold text-slate-400 ml-1">件</span></div>
+                                </div>
+                                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">DM送信数</div>
+                                    <div className="text-3xl font-black text-slate-800">{posts.filter(p => p.status === 'replied').length}<span className="text-base font-bold text-slate-400 ml-1">件</span></div>
+                                </div>
+                                <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-5 shadow-sm relative overflow-hidden">
+                                    <div className="absolute right-[-10px] top-[-10px] opacity-10"><Target className="w-24 h-24 text-emerald-600" /></div>
+                                    <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1 relative z-10">想定アポ獲得数 (10%)</div>
+                                    <div className="text-3xl font-black text-emerald-900 relative z-10">{Math.floor(posts.filter(p => p.status === 'replied').length * 0.1)}<span className="text-base font-bold text-emerald-600/60 ml-1">件</span></div>
+                                </div>
+                                <div className="bg-gradient-to-br from-teal-600 to-teal-800 rounded-2xl border border-teal-700 p-5 shadow-sm text-white relative overflow-hidden">
+                                    <div className="absolute right-[-10px] top-[-10px] opacity-10"><Zap className="w-24 h-24 text-white" /></div>
+                                    <div className="text-xs font-bold text-teal-100 uppercase tracking-wider mb-1 relative z-10">今月の期待売上 (単価30万)</div>
+                                    <div className="text-3xl font-black text-white relative z-10 tracking-tight">¥{(Math.floor(posts.filter(p => p.status === 'replied').length * 0.1) * 300000).toLocaleString()}</div>
+                                </div>
+                            </div>
                         </header>
                         <div className="grid gap-6 pb-20">
                             {posts.map((post) => (
