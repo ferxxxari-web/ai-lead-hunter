@@ -1,4 +1,4 @@
-import { TwitterApi } from 'twitter-api-v2';
+// No external scraper clent needed, using REST API
 
 export interface XPost {
     id: string;
@@ -8,41 +8,72 @@ export interface XPost {
     authorName?: string;
 }
 
-const bearerToken = process.env.X_BEARER_TOKEN;
-const isDemoMode = !bearerToken || bearerToken === 'your_x_bearer_token_here';
+const getApifyToken = () => process.env.APIFY_API_TOKEN;
 
-const twitterClient = new TwitterApi(bearerToken || '');
-const roClient = twitterClient.readOnly;
+// apifyClientオブジェクトも関数内で初期化して毎回最新のトークンを参照するようにする
 
 export async function fetchRecentPosts(query: string, excludeKeywords: string[] = []): Promise<XPost[]> {
-    console.log(`Searching X for: ${query}, Excluding: ${excludeKeywords}`);
+    console.log(`Searching X via Apify REST API for: ${query}, Excluding: ${excludeKeywords}`);
+
+    const apifyToken = getApifyToken();
+    const isDemoMode = !apifyToken || apifyToken === 'your_apify_api_token_here';
+    console.log(`[DEBUG] isDemoMode: ${isDemoMode}`);
 
     if (isDemoMode) {
         return getDemoPosts(query, excludeKeywords);
     }
 
     try {
-        const searchResult = await roClient.v2.search(query, {
-            'tweet.fields': ['created_at', 'author_id'],
-            expansions: ['author_id'],
-            'user.fields': ['name', 'username'],
-            max_results: 10,
+        // Apify REST APIを使ってActorを直接呼び出し
+        const url = `https://api.apify.com/v2/acts/apidojo~tweet-scraper/runs?token=${apifyToken}&waitForFinish=120`;
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                searchTerms: [query],
+                searchMode: "live", // 最新のツイート順
+                maxItems: 10
+            })
         });
 
-        const users = new Map(searchResult.includes?.users?.map(u => [u.id, u]) || []);
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`Apify run failed: ${res.status} ${errText}`);
+        }
 
-        return searchResult.data.data
-            .filter(tweet => !excludeKeywords.some(kw => tweet.text.includes(kw)))
-            .map(tweet => ({
-                id: tweet.id,
-                text: tweet.text,
-                authorId: tweet.author_id || '',
+        const result = await res.json();
+        const datasetId = result.data.defaultDatasetId;
+
+        // 検索結果のデータセットを取得
+        const dRes = await fetch(`https://api.apify.com/v2/datasets/${datasetId}/items?token=${apifyToken}`);
+        if (!dRes.ok) {
+            throw new Error(`Failed to fetch dataset with status ${dRes.status}`);
+        }
+
+        const items = await dRes.json();
+
+        return items
+            .filter((tweet: any) => {
+                const text = tweet.full_text || tweet.text || '';
+                return text && !excludeKeywords.some(kw => text.includes(kw));
+            })
+            .map((tweet: any) => ({
+                id: tweet.id_str || tweet.id || '',
+                text: tweet.full_text || tweet.text || '',
+                authorId: tweet.user?.id_str || '',
                 createdAt: tweet.created_at || new Date().toISOString(),
-                authorName: users.get(tweet.author_id || '')?.name || 'X User'
-            }));
-    } catch (error) {
-        console.error("X API Search Error:", error);
-        return getDemoPosts(query, excludeKeywords);
+                authorName: tweet.user?.name || tweet.user?.screen_name || 'X User'
+            })).slice(0, 10);
+    } catch (error: any) {
+        console.error("Apify Search Error details:", error);
+        // デバッグ用: ダミーではなくエラーを含んだ要素を1つ返す
+        return [{
+            id: 'error_id_123',
+            text: `[ERROR] Apify連携に失敗しました: ${error?.message || String(error)}`,
+            authorId: 'error_user',
+            createdAt: new Date().toISOString(),
+            authorName: 'System Error'
+        }];
     }
 }
 
