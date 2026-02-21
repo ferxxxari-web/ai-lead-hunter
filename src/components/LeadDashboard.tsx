@@ -411,15 +411,91 @@ export default function LeadDashboard({ initialPosts }: { initialPosts: Post[] }
                 )}
                 {activeTab === 'keywords' && (
                     <div className="max-w-2xl space-y-8">
-                        <h1 className="text-3xl font-bold">キーワード設定</h1>
-                        <div className="bg-white p-8 rounded-2xl border border-slate-200 space-y-6">
-                            <h3 className="font-bold text-teal-700">探知キーワード</h3>
-                            <div className="flex flex-wrap gap-2">{keywords.map(kw => <div key={kw} className="px-3 py-1 bg-slate-50 border rounded-lg text-xs">{kw} <button onClick={() => removeKeyword(kw)}>×</button></div>)}</div>
-                            <div className="flex gap-2"><input value={newKeyword} onChange={e => setNewKeyword(e.target.value)} className="flex-1 border rounded-xl px-4 py-2" /><button onClick={addKeyword} className="bg-teal-600 text-white px-4 rounded-xl">追加</button></div>
+                        <h1 className="text-3xl font-extrabold text-slate-900">キーワード設定</h1>
+
+                        <div className="bg-white p-8 rounded-2xl border border-slate-200 space-y-6 shadow-sm">
+                            <h3 className="font-bold text-teal-700 text-lg">探知キーワード（検索したい言葉）</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {keywords.map(kw => (
+                                    <div key={kw} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm flex items-center gap-2">
+                                        {kw} <button onClick={() => removeKeyword(kw)} className="text-slate-400 hover:text-slate-600">×</button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex gap-2">
+                                <input value={newKeyword} onChange={e => setNewKeyword(e.target.value)} placeholder="例: エンジニア 探してる" onKeyDown={e => e.key === 'Enter' && addKeyword()} className="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                                <button onClick={addKeyword} className="bg-teal-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-teal-700 transition-colors">追加</button>
+                            </div>
+                        </div>
+
+                        <div className="bg-rose-50/30 p-8 rounded-2xl border border-rose-100 space-y-6 shadow-sm">
+                            <h3 className="font-bold text-rose-600 text-lg">除外キーワード（ノイズになる言葉）</h3>
+                            <p className="text-sm text-slate-500 mb-2">ここに登録した言葉が含まれる投稿は、スキャン結果から自動で除外されます。</p>
+                            <div className="flex flex-wrap gap-2">
+                                {negativeKeywords.map(kw => (
+                                    <div key={kw} className="px-3 py-1.5 bg-white border border-rose-200 text-rose-700 rounded-lg text-sm flex items-center gap-2 shadow-sm">
+                                        {kw} <button onClick={() => removeNegativeKeyword(kw)} className="text-rose-400 hover:text-rose-600 font-bold">×</button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex gap-2">
+                                <input value={newNegativeKeyword} onChange={e => setNewNegativeKeyword(e.target.value)} placeholder="例: 裏垢, 業者, 募集" onKeyDown={e => e.key === 'Enter' && addNegativeKeyword()} className="flex-1 border border-rose-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                                <button onClick={addNegativeKeyword} className="bg-rose-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-rose-700 transition-colors">除外する</button>
+                            </div>
                         </div>
                     </div>
                 )}
-                {activeTab === 'guide' && <div className="max-w-2xl"><h1 className="text-3xl font-bold mb-8">操作ガイド</h1><p>3ステップで簡単に始められます。まずは設定から。</p></div>}
+                {activeTab === 'guide' && (
+                    <div className="max-w-3xl">
+                        <h1 className="text-3xl font-extrabold text-slate-900 mb-8">操作ガイド</h1>
+                        <p className="text-slate-500 text-lg mb-10 leading-relaxed text-balance">
+                            AI Lead Hunterへようこそ！<br />このツールは以下の3つのステップで、あなたの代わりにSNS上の見込み客を自動で発掘します。
+                        </p>
+
+                        <div className="space-y-8">
+                            {/* Step 1 */}
+                            <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-2 h-full bg-teal-500"></div>
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-teal-50 text-teal-700 font-black text-lg">1</div>
+                                    <h3 className="text-xl font-bold text-slate-800">プロジェクト設定を入力する</h3>
+                                </div>
+                                <p className="text-slate-600 leading-relaxed ml-14">
+                                    まずは左メニューの「プロジェクト設定」を開き、あなたが売りたいサービス（または解決できる課題）の<b>名前・URL・ターゲット・概要</b>を詳しく入力します。<br />
+                                    AIはこの情報を読み込んで、「どんな言葉で見込み客に話しかければいいか」を学習します。できるだけ詳しく書くのがコツです。
+                                </p>
+                            </div>
+
+                            {/* Step 2 */}
+                            <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-2 h-full bg-teal-500"></div>
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-teal-50 text-teal-700 font-black text-lg">2</div>
+                                    <h3 className="text-xl font-bold text-slate-800">探知キーワードを決める</h3>
+                                </div>
+                                <p className="text-slate-600 leading-relaxed ml-14">
+                                    次に「キーワード設定」タブを開き、あなたのターゲットが<b>X（Twitter）でつぶやきそうなお困りごと</b>のキーワードを入力します。<br />
+                                    （例: 「売上 上がらない」「エンジニア 不足」「アプリ 開発 費用」など）<br />
+                                    逆に拾いたくない言葉（ノイズ）は「除外キーワード」に設定してください。
+                                </p>
+                            </div>
+
+                            {/* Step 3 */}
+                            <div className="bg-white rounded-2xl p-8 border border-teal-200 shadow-md bg-teal-50/30 relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-2 h-full bg-teal-600"></div>
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-teal-600 text-white font-black text-lg">3</div>
+                                    <h3 className="text-xl font-bold text-slate-800">スキャンを開始する！</h3>
+                                </div>
+                                <p className="text-slate-600 leading-relaxed ml-14">
+                                    準備完了です！「見込み客フィード」に戻り、右上の<b>「スキャンを開始」</b>ボタンを押してください。<br />
+                                    AIがネットの海を数十秒〜数分かけてスキャンし、条件に合う「熱い見込み客」と「AIが考えた自然なリプライ（返信）案」をセットで表示します。<br />
+                                    あとは内容を確認して、「回答を送信」を押すだけで自動でXに返信されます！
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );
