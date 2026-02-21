@@ -17,12 +17,12 @@ export const STRIPE_PLANS = {
     id: 'free',
     name: '無料プラン',
     priceId: '',
-    limit: 5, // 1日のスキャン上限など
+    limit: 50, // 初期営業フェーズのため、自身ですぐに上限に達しないよう「5」から大幅に緩和
   },
   PRO: {
     id: 'pro',
     name: 'プロプラン',
     priceId: process.env.STRIPE_PRO_PRICE_ID || 'price_placeholder',
-    limit: 100,
+    limit: 10000,
   },
 };
